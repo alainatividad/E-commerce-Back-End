@@ -1,21 +1,23 @@
+// The `/api/products` endpoint
+// create a routes for /api/products and load relevant tables
 const router = require("express").Router();
 const { Product, Category, Tag, ProductTag } = require("../../models");
-
-// The `/api/products` endpoint
 
 // get all products
 router.get("/", async (req, res) => {
   // find all products
-  // be sure to include its associated Category and Tag data
   try {
+    // runs a SELECT * query from product table and also includes the category linked by the categoryId and the tags linked by the productTag table
     const productData = await Product.findAll({
       include: [
         { model: Category },
         { model: Tag, through: ProductTag, as: "tags" },
       ],
     });
+    //returns result
     res.status(200).json(productData);
   } catch (err) {
+    //catches non-user errors
     res.status(500).json(err);
   }
 });
@@ -23,8 +25,8 @@ router.get("/", async (req, res) => {
 // get one product
 router.get("/:id", async (req, res) => {
   // find a single product by its `id`
-  // be sure to include its associated Category and Tag data
   try {
+    // runs a SELECT query for a specific productId from the product table that also includes the associated category and tag tables
     const productData = await Product.findByPk(req.params.id, {
       include: [
         { model: Category },
@@ -32,11 +34,14 @@ router.get("/:id", async (req, res) => {
       ],
     });
 
+    // if there's nothing returned, return status 400 and meesage
     if (!productData) {
-      res.status(400).json({ message: "No product with that id." });
+      return res.status(400).json({ message: "No product with that id." });
     }
+    // else show results
     res.status(200).json(productData);
   } catch (err) {
+    //catches non-user errors
     res.status(500).json(err);
   }
 });
@@ -110,7 +115,6 @@ router.put("/:id", async (req, res) => {
     })
     .then((updatedProductTags) => res.json(updatedProductTags))
     .catch((err) => {
-      // console.log(err);
       res.status(400).json(err);
     });
 });
@@ -118,18 +122,22 @@ router.put("/:id", async (req, res) => {
 router.delete("/:id", async (req, res) => {
   // delete one product by its `id` value
   try {
+    // runs DELETER from product WHERE req.params.id = productId
     const productData = await Product.destroy({
       where: {
         id: req.params.id,
       },
     });
 
+    // if no rows affected are returned, return status 400 and message
     if (!productData) {
       res.status(404).json({ message: "No product with that id." });
       return;
     }
+    //return number of records affected
     res.status(200).json(productData);
   } catch (err) {
+    //catch all non-user errors
     res.status.apply(500).json(err);
   }
 });
